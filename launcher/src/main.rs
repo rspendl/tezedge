@@ -9,7 +9,6 @@ mod node_runner;
 
 #[tokio::main]
 async fn main() {
-
     // parse and validate program arguments
     let env = configuration::LauncherEnvironment::from_args();
 

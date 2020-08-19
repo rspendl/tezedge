@@ -2,8 +2,6 @@ use std::path::{Path, PathBuf};
 
 use clap::{App, Arg};
 
-
-
 pub struct LauncherEnvironment {
     pub light_node_path: PathBuf,
     pub log_level: slog::Level,
@@ -12,7 +10,15 @@ pub struct LauncherEnvironment {
 
 // TODO: borrowed from light_node/src/configuration; expose this macro
 macro_rules! parse_validator_fn {
-    ($t:ident, $err:expr) => {|v| if v.parse::<$t>().is_ok() { Ok(()) } else { Err($err.to_string()) } }
+    ($t:ident, $err:expr) => {
+        |v| {
+            if v.parse::<$t>().is_ok() {
+                Ok(())
+            } else {
+                Err($err.to_string())
+            }
+        }
+    };
 }
 
 fn launcher_app() -> App<'static, 'static> {
@@ -20,24 +26,39 @@ fn launcher_app() -> App<'static, 'static> {
         .version("0.3.1")
         .author("SimpleStaking and the project contributors")
         .setting(clap::AppSettings::AllArgsOverrideSelf)
-        .arg(Arg::with_name("light-node-path")
-            .long("light-node-path")
-            .takes_value(true)
-            .value_name("PATH")
-            .help("Path to the light-node binary")
-            .validator(|v| if Path::new(&v).exists() { Ok(()) } else { Err(format!("Light-node binary not found at '{}'", v)) }))
-        .arg(Arg::with_name("log-level")
-            .long("log-level")
-            .takes_value(true)
-            .value_name("LEVEL")
-            .possible_values(&["critical", "error", "warn", "info", "debug", "trace"])
-            .help("Set log level"))
-        .arg(Arg::with_name("launcher-rpc-port")
-            .long("launcher-rpc-port")
-            .takes_value(true)
-            .value_name("PORT")
-            .help("Rust server RPC port for communication with rust node")
-            .validator(parse_validator_fn!(u16, "Value must be a valid port number")));
+        .arg(
+            Arg::with_name("light-node-path")
+                .long("light-node-path")
+                .takes_value(true)
+                .value_name("PATH")
+                .help("Path to the light-node binary")
+                .validator(|v| {
+                    if Path::new(&v).exists() {
+                        Ok(())
+                    } else {
+                        Err(format!("Light-node binary not found at '{}'", v))
+                    }
+                }),
+        )
+        .arg(
+            Arg::with_name("log-level")
+                .long("log-level")
+                .takes_value(true)
+                .value_name("LEVEL")
+                .possible_values(&["critical", "error", "warn", "info", "debug", "trace"])
+                .help("Set log level"),
+        )
+        .arg(
+            Arg::with_name("launcher-rpc-port")
+                .long("launcher-rpc-port")
+                .takes_value(true)
+                .value_name("PORT")
+                .help("Rust server RPC port for communication with rust node")
+                .validator(parse_validator_fn!(
+                    u16,
+                    "Value must be a valid port number"
+                )),
+        );
     app
 }
 
