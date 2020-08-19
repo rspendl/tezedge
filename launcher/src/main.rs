@@ -27,8 +27,6 @@ async fn main() {
     // combined warp filter
     let api = filters::launcher(log.clone(), runner);
 
-    // TODO: add argument handling (clap)
-    // TODO: enable custom port definition
     info!(log, "Starting the launcher RPC server");
 
     // start serving the api
