@@ -1,36 +1,43 @@
-use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
 use slog::{info, Drain, Level, Logger};
 
+mod configuration;
 mod filters;
 mod handlers;
 mod node_runner;
 
 #[tokio::main]
 async fn main() {
-    let log = create_logger();
 
-    // TODO: should add an argument?
-    let path = PathBuf::from(r"./target/release/light-node");
+    // parse and validate program arguments
+    let env = configuration::LauncherEnvironment::from_args();
 
+    // create an slog logger
+    let log = create_logger(env.log_level);
+
+    // create a thread safe reference to the runner struct
     let runner = Arc::new(RwLock::new(node_runner::LightNodeRunner::new(
         "light-node-0",
-        path,
+        env.light_node_path,
     )));
 
+    // the port to open the rpc server on
+    let rpc_port = env.launcher_rpc_port;
+
+    // combined warp filter
     let api = filters::launcher(log.clone(), runner);
 
     // TODO: add argument handling (clap)
     // TODO: enable custom port definition
     info!(log, "Starting the launcher RPC server");
-    warp::serve(api).run(([0, 0, 0, 0], 3030)).await;
+
+    // start serving the api
+    warp::serve(api).run(([0, 0, 0, 0], rpc_port)).await;
 }
 
 /// Creates a slog Logger
-fn create_logger() -> Logger {
-    // TODO: should we enable different log levels?
-
+fn create_logger(level: Level) -> Logger {
     let drain = slog_async::Async::new(
         slog_term::FullFormat::new(slog_term::TermDecorator::new().build())
             .build()
@@ -39,7 +46,7 @@ fn create_logger() -> Logger {
     .chan_size(32768)
     .overflow_strategy(slog_async::OverflowStrategy::Block)
     .build()
-    .filter_level(Level::Trace)
+    .filter_level(level)
     .fuse();
     Logger::root(drain, slog::o!())
 }

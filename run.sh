@@ -242,7 +242,10 @@ run_launcher() {
   # protocol_runner needs 'libtezos.so' to run
   export LD_LIBRARY_PATH="${BASH_SOURCE%/*}/tezos/interop/lib_tezos/artifacts:${BASH_SOURCE%/*}/target/$PROFILE"
 
-  cargo run $CARGO_PROFILE_ARG --bin launcher
+  cargo run $CARGO_PROFILE_ARG --bin launcher -- \
+                                --log-level "info" \
+                                --launcher-rpc-port "3030" \
+                                --light-node-path "./target/$PROFILE/light-node" "${args[@]}"
 }
 
 case $1 in

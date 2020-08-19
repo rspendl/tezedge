@@ -1335,6 +1335,7 @@ name = "launcher"
 version = "0.3.0"
 dependencies = [
  "chrono",
+ "clap",
  "failure",
  "futures",
  "getset",
