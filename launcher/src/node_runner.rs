@@ -1,12 +1,37 @@
+use std::path::PathBuf;
 use std::process::{Child, Command};
-use std::path::{Path, PathBuf};
-use std::time::Duration;
 use std::sync::{Arc, RwLock};
+use std::time::Duration;
 
+use failure::Fail;
 use getset::Getters;
+use nix::sys::signal::{self, Signal};
+use nix::unistd::Pid;
 use serde::{Deserialize, Serialize};
 use wait_timeout::ChildExt;
 
+#[derive(Debug, Fail)]
+pub enum LightNodeRunnerError {
+    /// Already running error.
+    #[fail(display = "light node is already running")]
+    NodeAlreadyRunning,
+
+    /// Already running error.
+    #[fail(display = "light node is not running")]
+    NodeNotRunnig,
+
+    /// IO Error.
+    #[fail(display = "IO error during process creation")]
+    IOError { reason: std::io::Error },
+}
+
+impl From<std::io::Error> for LightNodeRunnerError {
+    fn from(err: std::io::Error) -> LightNodeRunnerError {
+        LightNodeRunnerError::IOError { reason: err }
+    }
+}
+
+/// Struct that holds the light node configuration comming from the RPC
 #[derive(Debug, Deserialize, Serialize, Clone, Getters)]
 #[getset(get_copy = "pub")]
 pub struct LightNodeConfiguration {
@@ -44,41 +69,74 @@ pub struct LightNodeConfiguration {
     private_node: Option<bool>,
     config_file: Option<String>,
 }
-/// Thread safe reference to a shared RPC state
-pub type LightNodeStateRef = Arc<RwLock<LightNodeState>>;
+/// Thread safe reference to a shared Runner
+pub type LightNodeRunnerRef = Arc<RwLock<LightNodeRunner>>;
 
-pub struct LightNodeState {
-    // TODO: more than one?
-    pub process: Option<Child>,
-}
-
+/// Struct that holds info about the running child process
 pub struct LightNodeRunner {
-    config: LightNodeConfiguration,
     executable_path: PathBuf,
-    name: String,
-    // TODO: anything else?
+    _name: String,
+    process: Option<Child>,
+    // TODO: anything else? Do we need a name? Maybe in the furture when launching multiple nodes with the launcher
 }
 
 // TODO: maybe implement (and possible rename to just Runner?) the trait ProtocolRunner found in tezos/wrapper/src/service.rs
 impl LightNodeRunner {
     const PROCESS_WAIT_TIMEOUT: Duration = Duration::from_secs(4);
 
-    pub fn new(name: &str, executable_path: PathBuf, cfg: LightNodeConfiguration) -> Self {
+    pub fn new(name: &str, executable_path: PathBuf) -> Self {
         Self {
-            config: cfg,
             executable_path,
-            name: name.to_string(),
+            _name: name.to_string(),
+            process: None,
         }
     }
 
-    pub fn spawn(&self) -> Result<Child, failure::Error> {
-        let process = Command::new(&self.executable_path)
-            .args(&self.construct_args())
-            .spawn()?;
-        Ok(process)
+    /// Spawn a light-node child process
+    pub fn spawn(&mut self, cfg: LightNodeConfiguration) -> Result<(), LightNodeRunnerError> {
+        if self.is_running() {
+            Err(LightNodeRunnerError::NodeAlreadyRunning)
+        } else {
+            let process = Command::new(&self.executable_path)
+                .args(Self::construct_args(cfg))
+                .spawn()?;
+            self.process = Some(process);
+            Ok(())
+        }
     }
 
-    pub fn terminate(mut process: Child) {
+    /// Shut down the light-node
+    pub fn shut_down(&mut self) -> Result<(), LightNodeRunnerError> {
+        if self.is_running() {
+            let process = self.process.as_mut().unwrap();
+            // kill with SIGINT (ctr-c)
+            match signal::kill(Pid::from_raw(process.id() as i32), Signal::SIGINT) {
+                Ok(()) => {
+                    self.process = None;
+                    Ok(())
+                }
+                // if for some reason, the SIGINT fails to end the process, kill it with SIGKILL
+                Err(_) => {
+                    Self::terminate_ref(process);
+                    Ok(())
+                }
+            }
+        } else {
+            Err(LightNodeRunnerError::NodeNotRunnig)
+        }
+    }
+
+    // pub fn terminate(mut process: Child) {
+    //     match process.wait_timeout(Self::PROCESS_WAIT_TIMEOUT).unwrap() {
+    //         Some(_) => (),
+    //         None => {
+    //             // child hasn't exited yet
+    //             let _ = process.kill();
+    //         }
+    //     };
+    // }
+
+    fn terminate_ref(process: &mut Child) {
         match process.wait_timeout(Self::PROCESS_WAIT_TIMEOUT).unwrap() {
             Some(_) => (),
             None => {
@@ -88,26 +146,20 @@ impl LightNodeRunner {
         };
     }
 
-    pub fn terminate_ref(process: &mut Child) {
-        match process.wait_timeout(Self::PROCESS_WAIT_TIMEOUT).unwrap() {
-            Some(_) => (),
-            None => {
-                // child hasn't exited yet
-                let _ = process.kill();
+    fn is_running(&mut self) -> bool {
+        if let Some(process) = &mut self.process {
+            match process.try_wait() {
+                Ok(None) => true,
+                _ => false,
             }
-        };
-    }
-
-    pub fn is_running(process: &mut Child) -> bool {
-        match process.try_wait() {
-            Ok(None) => true,
-            _ => false,
+        } else {
+            false
         }
     }
 
-    fn construct_args(&self) -> Vec<String> {
+    /// function to construct a vector with all the passed (via RPC) arguments
+    fn construct_args(cfg: LightNodeConfiguration) -> Vec<String> {
         let mut args: Vec<String> = Vec::new();
-        let cfg = &self.config;
         if let Some(tezos_data_dir) = &cfg.tezos_data_dir {
             args.push("--tezos-data-dir".to_string());
             args.push(tezos_data_dir.to_string());
@@ -200,7 +252,8 @@ impl LightNodeRunner {
             args.push("--ffi-pool-max-connections".to_string());
             args.push(ffi_pool_max_connections.to_string());
         }
-        if let Some(ffi_pool_connection_timeout_in_secs) = &cfg.ffi_pool_connection_timeout_in_secs {
+        if let Some(ffi_pool_connection_timeout_in_secs) = &cfg.ffi_pool_connection_timeout_in_secs
+        {
             args.push("--ffi-pool-connection-timeout-in-secs".to_string());
             args.push(ffi_pool_connection_timeout_in_secs.to_string());
         }
@@ -240,7 +293,7 @@ impl LightNodeRunner {
             args.push("--config-file".to_string());
             args.push(config_file.to_string());
         }
-        
+
         args
     }
 }

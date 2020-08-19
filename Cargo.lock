@@ -1341,6 +1341,7 @@ dependencies = [
  "hex",
  "itertools",
  "lazy_static",
+ "nix",
  "path-tree",
  "serde 1.0.114",
  "serde_json",

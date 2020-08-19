@@ -1,57 +1,54 @@
 use std::convert::Infallible;
-use std::path::PathBuf;
 
-use slog::{crit, info, Logger};
+use slog::{error, info, Logger};
 use warp::http::StatusCode;
 
-use crate::node::{LightNodeConfiguration, LightNodeStateRef, LightNodeRunner};
+use crate::node_runner::{LightNodeConfiguration, LightNodeRunnerRef};
 
+// TODO: discussion about what status codes to return on errors
+
+/// Handler for start endpoint
 pub async fn start_node_with_config(
     cfg: LightNodeConfiguration,
     log: Logger,
-    state: LightNodeStateRef
+    runner: LightNodeRunnerRef,
 ) -> Result<impl warp::Reply, Infallible> {
-
     info!(
         log,
         "Received request to start the light node with config: {:?}", cfg
     );
 
-    // TODO: should add into the request
-    let path = PathBuf::from(r"./target/release/light-node");
+    // aquire a write lock to the runner
+    let mut runner = runner.write().unwrap();
 
-    let mut state = state.write().unwrap();
-    let process = state.process.as_mut();
-
-    // No process started yet
-    if process.is_none() || !LightNodeRunner::is_running(process.unwrap()) {
-        // TODO better error handling (unwrap...)
-        let runner = LightNodeRunner::new("light-node", path, cfg).spawn().unwrap();
-
-        state.process = Some(runner);
-    } else {
-        crit!(log, "Light node is allready running");
-        return Ok(StatusCode::FORBIDDEN)
+    // spawn the node
+    match runner.spawn(cfg) {
+        Ok(()) => {
+            info!(log, "Light node started successfully");
+            Ok(StatusCode::OK)
+        }
+        Err(e) => {
+            error!(log, "Cannot start light-node process, reason: {}", e);
+            Ok(StatusCode::INTERNAL_SERVER_ERROR)
+        }
     }
-
-
-    Ok(StatusCode::OK)
 }
 
 pub async fn stop_node(
     log: Logger,
-    state: LightNodeStateRef
+    runner: LightNodeRunnerRef,
 ) -> Result<impl warp::Reply, Infallible> {
-    // println!("SUPPLIED CONFIG: {:?}", cfg);
+    info!(log, "Received request to stop the light node");
 
-    let mut state = state.write().unwrap();
-    let process = state.process.as_mut().unwrap();
+    // aquire a write lock to the runner
+    let mut runner = runner.write().unwrap();
 
-    if LightNodeRunner::is_running(process) {
-        info!(log, "Stopping the node");
-        LightNodeRunner::terminate_ref(process);
-        
+    // shut down the node
+    match runner.shut_down() {
+        Ok(()) => Ok(StatusCode::OK),
+        Err(e) => {
+            error!(log, "Error stopping the node, reason: {}", e);
+            Ok(StatusCode::INTERNAL_SERVER_ERROR)
+        }
     }
-
-    Ok(StatusCode::OK)
 }

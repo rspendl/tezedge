@@ -2,36 +2,35 @@ use slog::Logger;
 use warp::Filter;
 
 use crate::handlers::{start_node_with_config, stop_node};
-use crate::node::{LightNodeConfiguration, LightNodeStateRef};
+use crate::node_runner::{LightNodeConfiguration, LightNodeRunnerRef};
 
 pub fn launcher(
     log: Logger,
-    state: LightNodeStateRef
+    runner: LightNodeRunnerRef,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    start(log.clone(), state.clone())
-    .or(stop(log.clone(), state))
+    start(log.clone(), runner.clone()).or(stop(log.clone(), runner))
 }
 
 pub fn start(
     log: Logger,
-    state: LightNodeStateRef
+    runner: LightNodeRunnerRef,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path!("start")
         .and(warp::post())
         .and(json_body())
         .and(with_log(log))
-        .and(with_state(state))
+        .and(with_runner(runner))
         .and_then(start_node_with_config)
 }
 
 pub fn stop(
     log: Logger,
-    state: LightNodeStateRef
+    runner: LightNodeRunnerRef,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path!("stop")
         .and(warp::get())
         .and(with_log(log))
-        .and(with_state(state))
+        .and(with_runner(runner))
         .and_then(stop_node)
 }
 
@@ -48,8 +47,8 @@ fn with_log(
     warp::any().map(move || log.clone())
 }
 
-fn with_state(
-    state: LightNodeStateRef,
-) -> impl Filter<Extract = (LightNodeStateRef,), Error = std::convert::Infallible> + Clone {
-    warp::any().map(move || state.clone())
+fn with_runner(
+    runner: LightNodeRunnerRef,
+) -> impl Filter<Extract = (LightNodeRunnerRef,), Error = std::convert::Infallible> + Clone {
+    warp::any().map(move || runner.clone())
 }
