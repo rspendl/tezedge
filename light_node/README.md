@@ -76,7 +76,7 @@ Simple format is human-readable format, where JSON produce structured, easily ma
 --log-format <LOG-FORMAT>
 ```
 
-### Logging format
+### Logging level
 Set log level. Possible values are: `critical`, `error`, `warn`, `info`, `debug`, `trace`
 ```
 --log-level <LEVEL>
@@ -161,10 +161,63 @@ Number of ffi calls, after which will be Ocaml garbage collector called
 --ffi-calls-gc-treshold <NUM>
 ```
 
-### Record flag
-Flag for turn on/off record mode
+### Bootstrap DNS lookup
+Disables DNS lookup to get peers to bootstrap the network from. Default: false
 ```
---record <BOOL>
+--disable-bootstrap-lookup
+```
+### Mempool
+Enable or disable mempool
+```
+--disable-mempool
+```
+
+### Private node mode
+Enable or disable the private node. Use peers to set the IP addresses of the peers you want to connect to
+```
+--private-node
+```
+
+### Test chain
+Flag for enable/disable test chain switching for block applying. Default: false
+```
+--enable-testchain <BOOL>
+```
+
+### Ffi connection pool max connections
+Max number of FFI pool connections, default: 10
+```
+--ffi-pool-max-connections <NUM>
+```
+
+### Ffi connection timeout
+Number of seconds to wait for connection, default: 60
+```
+--ffi-pool-connection-timeout-in-secs <NUM>
+```
+
+### Ffi pool lifetime
+Number of seconds to remove protocol_runner from pool, default: 21600 (6 hours)
+```
+--ffi-pool-max-lifetime-in-secs <NUM>
+```
+
+### Ffi pool unused timeout
+Number of seconds to remove unused protocol_runner from pool, default: 1800 (30 minutes)
+```
+--ffi-pool-idle-timeout-in-secs <NUM>
+```
+
+### Recording context actions
+Activate recording of context storage actions
+```
+--store-context-actions 
+```
+
+### Sandbox context patching
+Path to the json file with key-values, which will be added to the empty context on startup and commit genesis.
+```
+--sandbox-patch-context-json-file <PATH>
 ```
 
 # Performance and optimization
