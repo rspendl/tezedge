@@ -3,13 +3,13 @@ use std::convert::Infallible;
 use slog::{error, info, Logger};
 use warp::http::StatusCode;
 
-use crate::node_runner::{LightNodeConfiguration, LightNodeRunnerRef};
+use crate::node_runner::{LightNodeRunnerRef};
 
 // TODO: discussion about what status codes to return on errors
 
 /// Handler for start endpoint
 pub async fn start_node_with_config(
-    cfg: LightNodeConfiguration,
+    cfg: serde_json::Value,
     log: Logger,
     runner: LightNodeRunnerRef,
 ) -> Result<impl warp::Reply, Infallible> {
