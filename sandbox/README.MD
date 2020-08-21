@@ -6,10 +6,10 @@ Quick start (running in sandbox mode)
 -----------
 
 
-**1. run the provided run.sh script in launcher mode**
+**1. run the provided run.sh script in sandbox mode**
 
 ```
-./run.sh launcher
+./run.sh sandbox
 ```
 
 **2. call the start RPC**

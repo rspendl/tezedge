@@ -22,12 +22,12 @@ async fn main() {
     )));
 
     // the port to open the rpc server on
-    let rpc_port = env.launcher_rpc_port;
+    let rpc_port = env.sandbox_rpc_port;
 
     // combined warp filter
-    let api = filters::launcher(log.clone(), runner);
+    let api = filters::sandbox(log.clone(), runner);
 
-    info!(log, "Starting the launcher RPC server");
+    info!(log, "Starting the sandbox RPC server");
 
     // start serving the api
     warp::serve(api).run(([0, 0, 0, 0], rpc_port)).await;

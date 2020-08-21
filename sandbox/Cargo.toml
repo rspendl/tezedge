@@ -1,9 +1,9 @@
 [package]
-name = "launcher"
+name = "sandbox"
 version = "0.3.0"
 authors = ["Adrian Nagy <adrian.nagy@simplestaking.com>"]
 edition = "2018"
-default-run = "launcher"
+default-run = "sandbox"
 
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }

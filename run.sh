@@ -163,7 +163,7 @@ run_docker() {
   docker run -i -t tezedge-run "$@"
 }
 
-run_launcher() {
+run_sandbox() {
   # Default light-node commandline arguments:
   #
   # -d | --tezos-data-dir
@@ -242,9 +242,9 @@ run_launcher() {
   # protocol_runner needs 'libtezos.so' to run
   export LD_LIBRARY_PATH="${BASH_SOURCE%/*}/tezos/interop/lib_tezos/artifacts:${BASH_SOURCE%/*}/target/$PROFILE"
 
-  cargo run $CARGO_PROFILE_ARG --bin launcher -- \
+  cargo run $CARGO_PROFILE_ARG --bin sandbox -- \
                                 --log-level "info" \
-                                --launcher-rpc-port "3030" \
+                                --sandbox-rpc-port "3030" \
                                 --light-node-path "./target/$PROFILE/light-node" "${args[@]}"
 }
 
@@ -264,11 +264,11 @@ case $1 in
     run_node "release" "$@"
     ;;
 
-  launcher)
+  sandbox)
     warn_if_not_using_recommended_rust
     printf "\033[1;37mRunning Tezedge node in RELEASE mode\e[0m\n"
     build_all "release"
-    run_launcher "release" "$@"
+    run_sandbox "release" "$@"
     ;;
 
   docker)

@@ -1331,31 +1331,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "launcher"
-version = "0.3.0"
-dependencies = [
- "chrono",
- "clap",
- "failure",
- "futures",
- "getset",
- "hex",
- "itertools",
- "lazy_static",
- "nix",
- "path-tree",
- "serde 1.0.114",
- "serde_json",
- "slog",
- "slog-async",
- "slog-json",
- "slog-term",
- "tokio",
- "wait-timeout",
- "warp",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2533,6 +2508,31 @@ name = "safemem"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef703b7cb59335eae2eb93ceb664c0eb7ea6bf567079d843e09420219668e072"
+
+[[package]]
+name = "sandbox"
+version = "0.3.0"
+dependencies = [
+ "chrono",
+ "clap",
+ "failure",
+ "futures",
+ "getset",
+ "hex",
+ "itertools",
+ "lazy_static",
+ "nix",
+ "path-tree",
+ "serde 1.0.114",
+ "serde_json",
+ "slog",
+ "slog-async",
+ "slog-json",
+ "slog-term",
+ "tokio",
+ "wait-timeout",
+ "warp",
+]
 
 [[package]]
 name = "scheduled-thread-pool"

@@ -4,7 +4,7 @@ use warp::Filter;
 use crate::handlers::{start_node_with_config, stop_node};
 use crate::node_runner::{LightNodeConfiguration, LightNodeRunnerRef};
 
-pub fn launcher(
+pub fn sandbox(
     log: Logger,
     runner: LightNodeRunnerRef,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {

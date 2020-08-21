@@ -77,7 +77,7 @@ pub struct LightNodeRunner {
     executable_path: PathBuf,
     _name: String,
     process: Option<Child>,
-    // TODO: anything else? Do we need a name? Maybe in the furture when launching multiple nodes with the launcher
+    // TODO: anything else? Do we need a name? Maybe in the furture when launching multiple nodes with the sandbox
 }
 
 // TODO: maybe implement (and possible rename to just Runner?) the trait ProtocolRunner found in tezos/wrapper/src/service.rs

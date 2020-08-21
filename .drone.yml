@@ -70,7 +70,7 @@ steps:
     - mkdir /artifacts/tezedge
     - mkdir -p /artifacts/identities
     - cp ./target/release/light-node /artifacts
-    - cp ./target/release/launcher /artifacts
+    - cp ./target/release/sandbox /artifacts
     - cp ./target/release/protocol-runner /artifacts
     - cp ./target/release/libtezos_interop_callback.so /artifacts/ffi
     - cp ./tezos/interop/lib_tezos/artifacts/libtezos.so /artifacts/ffi
@@ -97,11 +97,11 @@ trigger:
     - develop
 
 ##############################################################################################################
-# This pipeline test the launcher and its rpc sercver
+# This pipeline test the sandbox and its rpc sercver
 ##############################################################################################################
 ---
 kind: pipeline
-name: launcher
+name: sandbox
 
 clone:
   disable: true
@@ -110,10 +110,10 @@ environment:
   SODIUM_USE_PKG_CONFIG: 1
   NETWORK: sandbox
   TEZEDGE_NODE_RPC_CONTEXT_ROOT: http://tezedge-node-sandbox-run:18732
-  TEZEDGE_LAUNCHER_RPC_CONTEXT_ROOT: http://tezedge-launcher-sandbox-run:3030
+  TEZEDGE_LAUNCHER_RPC_CONTEXT_ROOT: http://tezedge-sandbox-sandbox-run:3030
 
 steps:
-  - name: tezedge-launcher-run
+  - name: tezedge-sandbox-run
     image: simplestakingcom/tezedge-ci-builder:latest
     pull: if-not-exists
     user: root
@@ -131,7 +131,7 @@ steps:
       - rust_libs=$(echo "`rustup show home`/toolchains/`rustup show active-toolchain | tr " " "\n" | head -1`/lib")
       - export LD_LIBRARY_PATH="/artifacts/ffi:$rust_libs"
       - echo "LD_LIBRARY_PATH - $LD_LIBRARY_PATH"
-      - /artifacts/launcher --launcher-rpc-port 3030 --light-node-path /artifacts/light-node --logl-level info
+      - /artifacts/sandbox --sandbox-rpc-port 3030 --light-node-path /artifacts/light-node --log-level info
 
 - name: start-tezedge-node-via-rpc
   user: root

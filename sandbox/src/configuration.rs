@@ -5,7 +5,7 @@ use clap::{App, Arg};
 pub struct LauncherEnvironment {
     pub light_node_path: PathBuf,
     pub log_level: slog::Level,
-    pub launcher_rpc_port: u16,
+    pub sandbox_rpc_port: u16,
 }
 
 // TODO: borrowed from light_node/src/configuration; expose this macro
@@ -21,7 +21,7 @@ macro_rules! parse_validator_fn {
     };
 }
 
-fn launcher_app() -> App<'static, 'static> {
+fn sandbox_app() -> App<'static, 'static> {
     let app = App::new("Tezos Light Node Launcher")
         .version("0.3.1")
         .author("SimpleStaking and the project contributors")
@@ -49,8 +49,8 @@ fn launcher_app() -> App<'static, 'static> {
                 .help("Set log level"),
         )
         .arg(
-            Arg::with_name("launcher-rpc-port")
-                .long("launcher-rpc-port")
+            Arg::with_name("sandbox-rpc-port")
+                .long("sandbox-rpc-port")
                 .takes_value(true)
                 .value_name("PORT")
                 .help("Rust server RPC port for communication with rust node")
@@ -64,7 +64,7 @@ fn launcher_app() -> App<'static, 'static> {
 
 impl LauncherEnvironment {
     pub fn from_args() -> Self {
-        let app = launcher_app();
+        let app = sandbox_app();
         let args = app.clone().get_matches();
 
         LauncherEnvironment {
@@ -78,11 +78,11 @@ impl LauncherEnvironment {
                 .unwrap_or("")
                 .parse::<slog::Level>()
                 .expect("Was expecting one value from slog::Level"),
-            launcher_rpc_port: args
-                .value_of("launcher-rpc-port")
+            sandbox_rpc_port: args
+                .value_of("sandbox-rpc-port")
                 .unwrap_or("")
                 .parse::<u16>()
-                .expect("Was expecting value of launcher-rpc-port"),
+                .expect("Was expecting value of sandbox-rpc-port"),
         }
     }
 }
