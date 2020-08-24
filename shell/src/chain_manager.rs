@@ -595,6 +595,8 @@ impl ChainManager {
 
                 // we try to set it as "new current head", if some means set, if none means just ignore block
                 if let Some(new_head) = self.chain_state.try_set_new_current_head(&message)? {
+                    debug!(ctx.system.log(), "New current head"; "block_header_hash" => HashType::BlockHash.bytes_to_string(&new_head.hash), "level" => &new_head.level);
+
                     // we need to check, if previous head is predecessor of new_head (for later use)
                     let new_branch_detected = match &self.current_head.local {
                         Some(previos_head) => if previos_head.hash == *message.header().header.predecessor() {
@@ -613,7 +615,7 @@ impl ChainManager {
                     // (this also notifies [mempool_prevalidator])
                     self.shell_channel.tell(
                         Publish {
-                            msg: ShellChannelMsg::NewCurrentHead(new_head, message),
+                            msg: ShellChannelMsg::NewCurrentHead(new_head, message.clone()),
                             topic: ShellChannelTopic::ShellEvents.into(),
                         }, Some(ctx.myself().into()));
 
@@ -623,6 +625,21 @@ impl ChainManager {
                     if self.is_bootstrapped {
                         if new_branch_detected {
                         } else {
+                            // send new current_head to peers
+                            let header: &BlockHeader = &message.header().header;
+                            let chain_id = self.chain_state.get_chain_id();
+
+                            self.peers.iter()
+                                .for_each(|(_, peer)| {
+                                    tell_peer(
+                                        CurrentHeadMessage::new(
+                                            chain_id.clone(),
+                                            header.clone(),
+                                            Mempool::default(),
+                                        ).into(),
+                                        peer,
+                                    )
+                                });
                         }
                     }
                 }
@@ -665,12 +682,13 @@ impl ChainManager {
             ShellChannelMsg::InjectBlock(inject_data) => {
                 let level = inject_data.block_header.level();
                 let block_header_with_hash = BlockHeaderWithHash::new(inject_data.block_header).unwrap();
-                let log = ctx.system.log().new(slog::o!("injection" => "block".to_string()));
+                let log = ctx.system.log().new(slog::o!("block" => HashType::BlockHash.bytes_to_string(&block_header_with_hash.hash)));
 
                 // this should  allways return true, as we are injecting a forged new block
                 let is_new_block =
                     self.chain_state.process_block_header(&block_header_with_hash, &log)
                         .and(self.operations_state.process_injected_block_header(&block_header_with_hash))?;
+                info!(log, "New block injection"; "is_new_block" => is_new_block, "level" => level);
 
                 if is_new_block {
                     // update stats
@@ -786,7 +804,8 @@ impl ChainManager {
             .filter(|(_, peer_state)| !peer_state.is_bootstrapped)
             .for_each(|(_, peer_state)| {
                 let peer_level = peer_state.current_head_level.unwrap_or(0);
-                if peer_level <= chain_manager_current_level {
+                if peer_level > 0 && peer_level <= chain_manager_current_level {
+                    info!(log, "Peer is bootstrapped"; "peer_level" => peer_level, "chain_manager_current_level" => chain_manager_current_level);
                     peer_state.is_bootstrapped = true;
                 }
             });
@@ -800,7 +819,7 @@ impl ChainManager {
         // if number of bootstrapped peers is under threshold, we can mark chain_manager as bootstrapped
         if self.num_of_peers_for_bootstrap_threshold <= num_of_bootstrapped_peers {
             self.is_bootstrapped = true;
-            info!(log, "Chain manager is bootstrapped"; "num_of_bootstrapped_peers" => num_of_bootstrapped_peers, "reached_on_level" => chain_manager_current_level)
+            info!(log, "Chain manager is bootstrapped"; "num_of_peers_for_bootstrap_threshold" => self.num_of_peers_for_bootstrap_threshold, "num_of_bootstrapped_peers" => num_of_bootstrapped_peers, "reached_on_level" => chain_manager_current_level)
         }
 
         ()
@@ -935,6 +954,8 @@ impl Receive<LogStats> for ChainManager {
             "remote_level" => remote_level);
         info!(log, "Blocks and operations info";
             "block_count" => self.stats.unseen_block_count,
+            "missing_blocks" => self.chain_state.missing_blocks_count(),
+            "missing_block_operations" => self.operations_state.missing_block_operations_count(),
             "last_block_secs" => self.stats.unseen_block_last.elapsed().as_secs(),
             "last_block_operations_secs" => self.stats.unseen_block_operations_last.elapsed().as_secs(),
             "applied_block_level" => self.stats.applied_block_level,
@@ -1140,7 +1161,7 @@ impl PeerState {
     }
 }
 
-fn tell_peer(msg: PeerMessageResponse, peer: &mut PeerState) {
+fn tell_peer(msg: PeerMessageResponse, peer: &PeerState) {
     peer.peer_ref.tell(SendMessage::new(msg), None);
 }
 
@@ -1252,6 +1273,12 @@ pub mod tests {
         // empty chain_manager
         chain_manager.resolve_is_bootstrapped(&log);
         assert!(!chain_manager.is_bootstrapped);
+
+        // add one not bootstrapped peer with level 0
+        let mut peer_state = peer(&actor_system, network_channel.clone(), &tokio_runtime);
+        peer_state.current_head_level = Some(0);
+        let peer_key = peer_state.peer_ref.uri().clone();
+        chain_manager.peers.insert(peer_key.clone(), peer_state);
 
         // add one not bootstrapped peer with level 5
         let mut peer_state = peer(&actor_system, network_channel.clone(), &tokio_runtime);

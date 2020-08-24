@@ -35,8 +35,10 @@ impl PeerConnectionThreshold {
     }
 
     /// Threshold for minimal count of bootstrapped peers
+    /// Ocaml counts it from connections: see [node_shared_arg.ml]
     pub fn num_of_peers_for_bootstrap_threshold(&self) -> usize {
-        std::cmp::min(2, self.low / 4)
+        let avarage_connections = (self.low + self.high) / 2;
+        std::cmp::min(2, avarage_connections / 4)
     }
 }
 
