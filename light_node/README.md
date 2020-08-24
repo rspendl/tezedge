@@ -1,18 +1,18 @@
 Light Node
 ===========
 
-This is implementation of a lightweight Tezos node written in Rust. 
+This is an implementation of a lightweight Tezos node written in Rust. 
 
 # Running the node
-Detailed information, about how to start the node, is in repository [README](../README.md) file 
+Detailed information on how to start the node can be found in the repository [README](../README.md) file 
 
 ## Arguments
-All arguments and their default values are in [tezedge.config](./etc/tezedge/tezedge.config) file.
-They can be provided also as command line arguments in the same format, in which case they have higher priority than the ones in conifg file
+All arguments and their default values can be found in the [tezedge.config](./etc/tezedge/tezedge.config) file.
+They can also be provided as command line arguments in the same format, in which case they have higher priority than the ones in config file
 
 
 ### Tezos data dir
-Path to directory which will be used to store Tezos specific data. This is required argument, and if node fails to 
+The path to directory which will be used to store Tezos-specific data. This is a required argument, and if the node fails to 
 create or access this directory, it will die gracefully.
 
 ```
@@ -20,9 +20,9 @@ create or access this directory, it will die gracefully.
 ```
 
 ### Identity file
-Path to the json identity file with peer-id, public-key, secret-key and pow-stamp. 
-New identity is automatically generated if it does not exist on specified path. 
-In case it starts with "./" or "../", it is relative path to the current dir, otherwise to the --tezos-data-dir
+The path to the json identity file with peer-id, public-key, secret-key and pow-stamp. 
+If an identity does not exist in the specified path, a new one will be automatically generated. 
+In case it starts with "./" or "../", it is a relative path to the current dir, otherwise to the --tezos-data-dir
 
 ```
 --identity-file <PATH>
@@ -30,10 +30,10 @@ In case it starts with "./" or "../", it is relative path to the current dir, ot
 
 ## Database configuration
 ### Bootstrap database path
-Path to bootstrap database directory. 
-In case it starts with "./" or "../", it is relative path to the current dir, otherwise to the --tezos-data-dir. 
-If directory does not exists, it will be created. If directory already exists, and 
-contains valid database, node will continue in bootstrap process on that database
+Path to the bootstrap database directory. 
+In case it starts with "./" or "../", it is a relative path to the current dir, otherwise to the --tezos-data-dir. 
+If the directory does not exist, it will be created. If directory already exists and 
+it contains a valid database, the node will continue in the bootstrapping process on that database
 
 ```
 --bootstrap-db-path <PATH>
@@ -41,7 +41,7 @@ contains valid database, node will continue in bootstrap process on that databas
 
 ### (Optional) parameters
 ```
-#Max number of threads used by database configuration. If not specified, then number of threads equal to CPU cores.
+#Max number of threads used by database configuration. If not specified, then number of threads will be equal to number of CPU cores.
 --db-cfg-max-threads <NUM>
 ```
 
@@ -61,8 +61,8 @@ For further information, see `--network` parameter of OCaml node.
 ```
 
 ### Logging file
-Path to the logger file. If provided, logs are written to the log file, otherwise displayed in terminal. 
-In case it starts with "./" or "../", it is relative path to the current dir, otherwise to the --tezos-data-dir
+Path to the logger file. If provided, logs are written to the log file, otherwise they will be displayed in the terminal. 
+In case it starts with "./" or "../", it is a relative path to the current dir, otherwise to the --tezos-data-dir
 ```
 --log-file <PATH>
 ```
@@ -70,7 +70,7 @@ In case it starts with "./" or "../", it is relative path to the current dir, ot
 ### Logging format
 Set format of logger entries, used usually with `--logger-format` argument.
 Possible values are either `simple` or `json`.
-Simple format is human-readable format, where JSON produce structured, easily machine consumable log entries.
+Simple format is a human-readable format while JSON produces structured, easily machine-consumable log entries.
 
 ```
 --log-format <LOG-FORMAT>
@@ -90,21 +90,21 @@ Enable OCaml runtime logger.
 ```
 
 ### Network
-Specify the Tezos environment for this node. Accepted values are: 
-`alphanet, babylonnet, babylon, mainnet or zeronet`, where `babylon` and `babylonnet` refer to same environment.
+Specifies the Tezos environment for this node. Accepted values are: 
+`alphanet, babylonnet, babylon, mainnet or zeronet`, where `babylon` and `babylonnet` refer to the same environment.
 
 ```
 --network <NETWORK>
 ```
 ### P2P Port
-Specify port for peer to peer communication.
+Specifies port for peer to peer communication.
 
 ```
 --p2p-port <PORT>
 ```
 
 ### RPC port
-Node contains subset of Tezos node REST API, described in further sections. This argument specifies port, on which
+The node contains a subset of the Tezos node's REST API as described in further sections. This argument specifies the port on which
 those APIs will be available.
 
 ```
@@ -112,21 +112,20 @@ those APIs will be available.
 ```
 
 ### WebSocket Access Address
-Node expose various metrics and statistics in real-time through websocket. This argument specifies address, on which
-will be this websocket accessible.
+The node exposes various metrics and statistics in real-time through a websocket. This argument specifies the address at which this websocket will be accessible.
 
 ```
 --websocket-address <IP:PORT>
 ```
 
 ### Monitor port
-Port on which the Tezedge node monitoring information will be exposed
+The port on which the monitoring information for the TezEdge node will be exposed
 ```
 --monitor-port <PORT>
 ```
 
 ### Peers <optional>
-Allowed network peers to bootstrap from. This argument is good to use in controlled testing environmnet.
+Allowed network peers to bootstrap from. This argument is good to use in a controlled testing environmnet.
 Each peer is described by its address and port in `IP:PORT` format, delimited by a colon.
 
 ```
@@ -134,14 +133,14 @@ Each peer is described by its address and port in `IP:PORT` format, delimited by
 ``` 
 
 ### Lower peer threshold
-Set minimal peer number, if running node does not has enough connected peers, peer discovery is enforced.
+Set minimal number of peers, if the running node does not have enough connected peers, peer discovery is enforced.
 
 ```
 -peer-thresh-low <NUMBER>
 ```
 
 ### Higher peer threshold
-Set maximum number of connected peers, running node will not try to connect to any more peers, if this threshold is met.
+Set maximum number of connected peers. If this threshold is met, then the running node will not try to connect to any more peers.
 
 ```
 --peer-thresh-high <NUMBER>
@@ -156,24 +155,24 @@ For example: `./target/debug/protocol-runner`.
 ```
 
 ### Number of ffi calls 
-Number of ffi calls, after which will be Ocaml garbage collector called
+Number of ffi calls, after which the Ocaml garbage collector will be called.
 ```
 --ffi-calls-gc-treshold <NUM>
 ```
 
 ### Bootstrap DNS lookup
-Disables DNS lookup to get peers to bootstrap the network from. Default: false
+Disables DNS lookup to get peers to bootstrap from the network. Default: false
 ```
 --disable-bootstrap-lookup
 ```
 ### Mempool
-Enable or disable mempool
+Enable or disable mempool.
 ```
 --disable-mempool
 ```
 
 ### Private node mode
-Enable or disable the private node. Use peers to set the IP addresses of the peers you want to connect to
+Enable or disable the private node. Use peers to set the IP addresses of the peers you want to connect to.
 ```
 --private-node
 ```
@@ -185,37 +184,37 @@ Flag for enable/disable test chain switching for block applying. Default: false
 ```
 
 ### Ffi connection pool max connections
-Max number of FFI pool connections, default: 10
+Max number of FFI pool connections. default: 10
 ```
 --ffi-pool-max-connections <NUM>
 ```
 
 ### Ffi connection timeout
-Number of seconds to wait for connection, default: 60
+Number of seconds to wait for connection. default: 60
 ```
 --ffi-pool-connection-timeout-in-secs <NUM>
 ```
 
 ### Ffi pool lifetime
-Number of seconds to remove protocol_runner from pool, default: 21600 (6 hours)
+Number of seconds to remove protocol_runner from pool, default: 21600 (6 hours).
 ```
 --ffi-pool-max-lifetime-in-secs <NUM>
 ```
 
 ### Ffi pool unused timeout
-Number of seconds to remove unused protocol_runner from pool, default: 1800 (30 minutes)
+Number of seconds to remove unused protocol_runner from pool, default: 1800 (30 minutes).
 ```
 --ffi-pool-idle-timeout-in-secs <NUM>
 ```
 
 ### Recording context actions
-Activate recording of context storage actions
+Activate recording of context storage actions.
 ```
 --store-context-actions 
 ```
 
 ### Sandbox context patching
-Path to the json file with key-values, which will be added to the empty context on startup and commit genesis.
+Path to the json file with key-values which will be added to the empty context on startup and commit genesis.
 ```
 --sandbox-patch-context-json-file <PATH>
 ```
