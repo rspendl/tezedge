@@ -2,13 +2,13 @@ use slog::Logger;
 use warp::Filter;
 
 use crate::handlers::{start_node_with_config, stop_node};
-use crate::node_runner::{LightNodeRunnerRef};
+use crate::node_runner::LightNodeRunnerRef;
 
 pub fn sandbox(
     log: Logger,
     runner: LightNodeRunnerRef,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    start(log.clone(), runner.clone()).or(stop(log.clone(), runner))
+    start(log.clone(), runner.clone()).or(stop(log, runner))
 }
 
 pub fn start(
@@ -34,8 +34,7 @@ pub fn stop(
         .and_then(stop_node)
 }
 
-fn json_body() -> impl Filter<Extract = (serde_json::Value,), Error = warp::Rejection> + Clone
-{
+fn json_body() -> impl Filter<Extract = (serde_json::Value,), Error = warp::Rejection> + Clone {
     // When accepting a body, we want a JSON body
     // (and to reject huge payloads)...
     warp::body::content_length_limit(1024 * 16).and(warp::body::json())

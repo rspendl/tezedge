@@ -3,9 +3,7 @@ use std::convert::Infallible;
 use slog::{error, info, Logger};
 use warp::http::StatusCode;
 
-use crate::node_runner::{LightNodeRunnerRef};
-
-// TODO: discussion about what status codes to return on errors
+use crate::node_runner::LightNodeRunnerRef;
 
 /// Handler for start endpoint
 pub async fn start_node_with_config(

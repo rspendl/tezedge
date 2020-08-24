@@ -8,7 +8,6 @@ pub struct LauncherEnvironment {
     pub sandbox_rpc_port: u16,
 }
 
-// TODO: borrowed from light_node/src/configuration; expose this macro
 macro_rules! parse_validator_fn {
     ($t:ident, $err:expr) => {
         |v| {

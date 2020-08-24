@@ -207,10 +207,8 @@ steps:
   image: alpine/git
   user: root
   volumes:
-    - name: tezedge-node-data
-      path: /tmp/tezedge_developer
-    - name: tezedge-target-branch-node-data
-      path: /tmp/tezedge_target-branch_developer
+    - name: sandbox-data
+      path: /tmp/sandbox
   commands:
     - rm -rf /tmp/sandbox/light-node
     - rm -rf /tmp/sandbox/tezos-node
