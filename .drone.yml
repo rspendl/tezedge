@@ -172,7 +172,7 @@ steps:
   commands:
     - sleep 5
     - TEZEDGE_URL=$${TEZEDGE_NODE_RPC_CONTEXT_ROOT}
-    - curl "$LAUNCHER_URL/chains/main/blocks/head"
+    - curl "$TEZEDGE_URL/chains/main/blocks/head"
     # check the status code of curl, should be 7 (Failed to connect to host)
     - /tmp/sandbox/assert_equals.sh 7 $?
 
