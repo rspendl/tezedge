@@ -166,7 +166,6 @@ steps:
 - name: test-node-exited
   user: root
   image: cfmanteiga/alpine-bash-curl-jq
-  # - /tmp/sandbox/assert_equals.sh 0 $applied_count
   volumes:
     - name: sandbox-data
       path: /tmp/sandbox
@@ -176,8 +175,6 @@ steps:
     - curl "$LAUNCHER_URL/chains/main/blocks/head"
     # check the status code of curl, should be 7 (Failed to connect to host)
     - /tmp/sandbox/assert_equals.sh 7 $?
-
-# TODO: expand this pipeline to verify thath the node started/stopped properly
 
 volumes:
   - name: build
