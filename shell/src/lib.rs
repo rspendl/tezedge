@@ -14,6 +14,32 @@ pub mod chain_manager;
 pub mod peer_manager;
 pub mod mempool_prevalidator;
 
+/// Simple threshold, for representing integral ranges.
+#[derive(Copy, Clone, Debug)]
+pub struct PeerConnectionThreshold {
+    low: usize,
+    high: usize,
+}
+
+impl PeerConnectionThreshold {
+    /// Create new threshold, by specifying mnimum and maximum (inclusively).
+    ///
+    /// # Arguments
+    /// * `low` - Lower threshold bound
+    /// * `higher` - Upper threshold bound
+    ///
+    /// `low` cannot be bigger than `high`, otherwise function will panic
+    pub fn new(low: usize, high: usize) -> Self {
+        assert!(low <= high, "low must be less than or equal to high");
+        PeerConnectionThreshold { low, high }
+    }
+
+    /// Threshold for minimal count of bootstrapped peers
+    pub fn num_of_peers_for_bootstrap_threshold(&self) -> usize {
+        std::cmp::min(2, self.low / 4)
+    }
+}
+
 pub(crate) mod subscription {
     use riker::actors::*;
 

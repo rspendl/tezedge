@@ -47,6 +47,9 @@ impl BlockchainState {
 
     /// Resolve if new applied block can be set as new current head.
     /// Original algorithm is in [chain_validator][on_request], where just fitness is checked.
+    /// Returns:
+    /// - None, if head was not updated
+    /// - Some(head), if head was updated
     pub fn try_set_new_current_head(&self, block: &BlockApplied) -> Result<Option<Head>, StorageError> {
 
         let head = Head {
